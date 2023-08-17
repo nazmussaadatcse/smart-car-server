@@ -63,32 +63,20 @@ async function run() {
     })
 
     app.get('/services',async(req,res)=>{
+        const sort = req.query.sort;
         const search = req.query.search;
         console.log(search)
-        let query = {};
-        if(search.length){
-            query = {
-                $text:{
-                    $search: search
-                }
+        let query = {title: {$regex: search, $options:'i'}};
+        const options ={
+            sort:{
+                "price" : sort === 'asc' ? 1 : -1
             }
-        }
-        
-        
-        // const query = {price:{$gt:100, $lt:300}}
-        const order = req.query.order === 'asc'? 1 : -1;
-        console.log(query,'search?')
+        };
+        const cursor = serviceCollection.find(query,options);
+        const result = await cursor.toArray();
+        res.send(result);
 
-        const cursor = serviceCollection.find(query).sort({price:order});
-        console.log(query,'search')
-
-        const services = await cursor.toArray();
-        console.log(query,'search//')
-
-        res.send(services);
-        console.log(query,'search....')
-
-    });
+    })
 
     app.get('/services/:id', async(req,res)=>{
         const id = req.params.id;
